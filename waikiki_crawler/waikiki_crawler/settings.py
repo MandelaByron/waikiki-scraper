@@ -1,11 +1,16 @@
-# Scrapy settings for waikiki_crawler project
-#
-# For simplicity, this file contains only settings considered important or
-# commonly used. You can find more settings consulting the documentation:
-#
-#     https://docs.scrapy.org/en/latest/topics/settings.html
-#     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+
+
+from .random_proxy import get_random_proxy
+
+BOT_NAME = 'ikea_main'
+
+SPIDER_MODULES = ['ikea_main.spiders']
+NEWSPIDER_MODULE = 'ikea_main.spiders'
+PROXY_USER = 'rimal'
+PROXY_PASSWORD = 'Kha2H5wnnX'
+PROXY_URL = get_random_proxy()
+PROXY_PORT = '60000'
+print(PROXY_URL)
 
 BOT_NAME = "waikiki_crawler"
 
@@ -16,6 +21,7 @@ NEWSPIDER_MODULE = "waikiki_crawler.spiders"
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT =  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
 LOG_FILE = "logs.txt"
+LOG_LEVEL = "INFO"
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
@@ -67,9 +73,10 @@ CONCURRENT_REQUESTS = 300
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    "waikiki_crawler.middlewares.WaikikiCrawlerDownloaderMiddleware": 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   "waikiki_crawler.middlewares.ProxyMiddleware": 100,
+   'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 110,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html

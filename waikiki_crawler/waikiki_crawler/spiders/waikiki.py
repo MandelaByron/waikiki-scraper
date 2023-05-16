@@ -2,17 +2,26 @@ import scrapy
 from urllib.parse import urlencode
 import requests
 import json
-from .test import get_verification_token
+
 from ..items import WaikikiCrawlerItem
 
 class WaikikiSpider(scrapy.Spider):
     name = "waikiki"
     allowed_domains = ["lcwaikiki.com"]
+    
+    custom_settings = {
+        'USER_AGENT': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
+        'ROBOTSTXT_OBEY': False,
+        'FEEDS':{
+            'waikiki_data.csv':{
+                'format':'csv',
+                'overwrite':True
+            }
+        }
+    }
 
-    def get_pages(self):
-        url = "https://www.lcwaikiki.com/tr-TR/TR/ajax/CategoryGroup/CategoryGroupPageData/?"
-
-        querystring = {"xhrKeys":"CountryCode,CategoryGroup,IsOutletCategoryGroup,ProductGroup,ProductGender,xhrKeys","CountryCode":"TR","CategoryGroup":"giyim","IsOutletCategoryGroup":"False","ProductGroup":"2","ProductGender":"2","PageIndex":"1"}
+    def get_pages(self,url):
+       
         headers = {
             #"cookie": "_abck=8CFAC83E172DE695F5771E725C05D67A~-1~YAAQGtJ6XB4EMPCHAQAAmmOa9QlGsixYXdMqSScHQAzjX33jV%2FFGJEAA5JAxr5plh9WREwz5FSuRIjrBs52OD9b%2BE1hGAgTvKYII2rU7ZiXssx8k3Mm0%2Fc39k2v6mqx0wCmjjNQgohrgyqbJwEaGbDscw8ECKl0X5zvoDQO8vUlX0gTvBRlWumS8R82gI21lP%2Fi0nTe0tuG8URyH%2F8%2B20MSdXFLvKEw6JBhuWpuCGSucrzstffKIM0r13xI9xpYDqB8FcZYyp5lwZ6eGRtwl8pqyV88pNMjIHYGNbCo1WSUnykuOiwuOVxmpllW39U8AjRMspMExaveSrG8SPBe9ilLOpkbddKlKnn9lsp433bRpavUI2ssBtYhIJoiJpf6y%2B%2FJJNR37FOEvkb1Ix3n1YKCCsKgZQvA%2BWx12UQ%3D%3D~-1~-1~-1; ak_bmsc=AB5BE64194387B432EEBB256A9287F03~000000000000000000000000000000~YAAQGtJ6XFodMPCHAQAAiMyd9RPJsztxtNE6mBBC79qfi49ZxIms6b7UpuXSaQDqvZ4yXcG8Os%2B%2F5qcvYJwaTZV3WDsB4YN34urg1iP9SryVMjrueY3qXT%2BI7dJu%2BXzjnI6JSLKQJAx3gkIFGpmZJdT62WVa0AUM32Qa8W621bCcvC9PNQ%2BXrbgPjVxFMamQ35o%2BAjnUat5ADib%2By8xhNKIsO46RewFmb1MXLIdU9ED8qSs6%2BrNVA9tmCw1i16LAdDiP3TaAikcHxs6kfHoXsayCJfyHojX3hRXZ4UJTX4cmS9xo2I3rdi%2FoSst5V4Bmk%2F3kXtjfX0ypS1eShz1BRf8DqmFN0syYKgbdDt07D7ONPF%2BPcr2sa%2FD7hNknehuYWfFmbm9BnJDBxomAHy%2BPt9pojHBuo7DLoCKz0A%3D%3D; CustomRequestVerificationToken=Cmprw0FLCQvqjuB87kLW8Xt4DpQv21sGd0qqv0B9Y7O-Wi37-WWsvz-oWEAlFZnlKLcuPA2; ASP.NET_SessionId=rgkixpx4sx2zruerpcp4z4iv; visitorId=bcb28855-861f-47d4-9cce-6788c9077bba; guestSessionId=1c71679e-53dc-4add-8eaf-c23c83108645; bm_sz=E933ABF6A46C4C33EB457DC6C06DE95C~YAAQGtJ6XCAEMPCHAQAAmmOa9RMLqnfBCzkz1tEwVx1kLnd3mKEX91Suy3oWO95CBMDwn89HUyQmrXPvKFgfZwu1ONDesp9sFG%2B1Mbn9KG533EcW0zcdwaI7rUTgCo2YjIEtjI2%2BRNc%2FNfwk8aw0e1%2Bglg8T59aiZoomwtp2z1sDGn89X%2Fi7vbHGPztRhe14hFoTUCARGfOQixirVgoPpPka%2BIMvq88eLyLM41w3otNeH2KGfM9%2F%2FygL5iNIempLXngijSQAfilhxtYvEDLov1Xrj73Yi39CljM3CcRvbNJ3k8rTc00%3D~3293494~3616838",
             "authority": "www.lcwaikiki.com",
@@ -22,7 +31,7 @@ class WaikikiSpider(scrapy.Spider):
            #"customrequestverificationtoken": "qe7FxOpa9sHwZzT0hmoq-Z6itUGyoIbbcJXYfAq5jmpCHcpHITQDxSAS74O34CR0ZLyXWA2",
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
         }
-        link = url + urlencode(querystring)
+        link = url
         r = requests.post(link,headers=headers)
         print(r.status_code)
         #r = scrapy.Request(link,method='POST')
@@ -36,34 +45,46 @@ class WaikikiSpider(scrapy.Spider):
 
 
     def start_requests(self):
-        total_pages = self.get_pages()
-
-        for i in range(1,total_pages+1):
-            
         
-            url = "https://www.lcwaikiki.com/tr-TR/TR/ajax/CategoryGroup/CategoryGroupPageData/?"
-
-            querystring = {"xhrKeys":"CountryCode,CategoryGroup,IsOutletCategoryGroup,ProductGroup,ProductGender,xhrKeys","CountryCode":"TR","CategoryGroup":"giyim","IsOutletCategoryGroup":"False","ProductGroup":"2","ProductGender":"2","PageIndex":f"{i}"}
-        
-            link = url + urlencode(querystring)
-
-            request = scrapy.Request(method ="POST", url=link, callback= self.parse_api)
+        url_list = [
             
-
+            "https://www.lcwaikiki.com/tr-TR/TR/ajax/CategoryGroup/CategoryGroupPageData?xhrKeys=CountryCode,CategoryGroup,IsOutletCategoryGroup,ProductGroup,ProductGender,xhrKeys&CountryCode=TR&CategoryGroup=giyim&IsOutletCategoryGroup=False&ProductGroup=1&ProductGender=1&PageIndex=2",
+            "https://www.lcwaikiki.com/tr-TR/TR/ajax/ProductGroup/ProductGroupPageData?xhrKeys=CountryCode,ProductGroup,ProductGender,xhrKeys&CountryCode=TR&ProductGroup=4&ProductGender=2&PageIndex=2",
+            "https://www.lcwaikiki.com/tr-TR/TR/ajax/ProductGroup/ProductGroupPageData?xhrKeys=CountryCode,ProductGroup,ProductGender,xhrKeys&CountryCode=TR&ProductGroup=4&ProductGender=1&PageIndex=2",
+            "https://www.lcwaikiki.com/tr-TR/TR/ajax/ProductGroup/ProductGroupPageData?xhrKeys=CountryCode,ProductGroup,ProductGender,xhrKeys&CountryCode=TR&ProductGroup=5&ProductGender=2&PageIndex=2",
+            "https://www.lcwaikiki.com/tr-TR/TR/ajax/ProductGroup/ProductGroupPageData?xhrKeys=CountryCode,ProductGroup,ProductGender,xhrKeys&CountryCode=TR&ProductGroup=5&ProductGender=1&PageIndex=2",
+            "https://www.lcwaikiki.com/tr-TR/TR/ajax/Tag/TagPageData?xhrKeys=CountryCode,Tag,xhrKeys&CountryCode=TR&Tag=tum-ayakkabi-urunleri&PageIndex=2",
+            "https://www.lcwaikiki.com/tr-TR/TR/ajax/Tag/TagPageData?xhrKeys=CountryCode,Tag,xhrKeys&CountryCode=TR&Tag=tum-aksesuar-urunleri-2022&PageIndex=2",
+            "https://www.lcwaikiki.com/tr-TR/TR/ajax/Tag/TagPageData?xhrKeys=CountryCode,Tag,xhrKeys&CountryCode=TR&Tag=tum-lcw-home-urunleri&PageIndex=2",
+            "https://www.lcwaikiki.com/tr-TR/TR/ajax/CategoryGroup/CategoryGroupPageData?xhrKeys=CountryCode,CategoryGroup,IsOutletCategoryGroup,ProductGroup,ProductGender,xhrKeys&CountryCode=TR&CategoryGroup=giyim&IsOutletCategoryGroup=False&ProductGroup=2&ProductGender=2&PageIndex=2"
             
-            yield request
+        ]
+        for category_url in url_list:
+            total_pages = self.get_pages(category_url)
+            for i in range(1,total_pages+1):
+                link = category_url.replace("PageIndex=2",f"PageIndex={i}")
+                request = scrapy.Request(method ="POST", url=link, callback= self.parse_api)
+                yield request
+                
     def parse_api(self, response):
         data = response.json()
         total_items=data['CatalogList']['ItemCount']
         current_page=data['PageView']['CurrentPageIndex']
         self.logger.info(f'----CURRENT PAGE INDEX--- {current_page}')
+        
         for i in data['CatalogList']['Items']:
             url = i['ModelUrl']
-            #print(url)
-            old_price = i['Price']
-            old_price=old_price.replace('TL','').replace(',','.').strip()
-            list_price = i['OldPrice'].replace('TL','').replace(',','.').strip()
             
+            if i['HasCampaignBadges']:
+                list_price = i['CampaignBadges'][0]['DiscountedPrice']
+                old_price = i['Price'].replace('TL','').replace(',','.').strip()
+            else:
+                old_price = i['Price'].replace('TL','').replace(',','.').strip()
+                list_price = i['OldPrice'].replace('TL','').replace(',','.').strip()
+            
+            if list_price == 0:
+                list_price = i['OldPrice'].replace('TL','').replace(',','.').strip()
+                
             brand =i['BrandPropertyDescription']
             store = 'LC Waikiki'
             color_counts = i['OptionColorCount']
